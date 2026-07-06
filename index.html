@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#14100d" />
+  <title>Il Vicolo — Braceria • Pizzeria</title>
+  <meta name="description" content="Menu di Il Vicolo — Braceria e Pizzeria. Carne alla brace, bistecche e pizza cotta a legna." />
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Oswald:wght@400;500;600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <main class="wrap">
+
+    <!-- Intestazione -->
+    <header class="hero">
+      <p class="kicker">Dal nostro forno alla brace</p>
+      <h1 id="r-name">Il Vicolo</h1>
+      <div class="flame-rule"></div>
+      <p class="sub" id="r-sub">Braceria • Pizzeria</p>
+      <p class="tag" id="r-tag">Carne alla brace e pizza cotta a legna</p>
+    </header>
+
+    <!-- Griglia categorie: 2 colonne -->
+    <nav class="menu-grid" id="grid" aria-label="Categorie del menu"></nav>
+
+    <!-- Piè di pagina -->
+    <footer class="foot">
+      <span class="name" id="f-name">Il Vicolo</span>
+      <div id="f-addr">Via del Vicolo 12 — Città (XX)</div>
+      <div><a id="f-tel" href="tel:">+39 000 000 0000</a></div>
+      <div id="f-hours">Mar–Dom 19:00 – 24:00 · Lunedì chiuso</div>
+    </footer>
+  </main>
+
+  <!-- Carosello a schermo intero -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Piatti">
+    <button class="ov-close" id="ov-close" aria-label="Chiudi">✕</button>
+
+    <div class="ov-top">
+      <h2 class="ov-title" id="ov-title">Categoria</h2>
+      <span class="ov-count" id="ov-count">1 / 1</span>
+    </div>
+
+    <div class="deck" id="deck"></div>
+
+    <button class="nav-btn nav-prev" id="nav-prev" aria-label="Piatto precedente">‹</button>
+    <button class="nav-btn nav-next" id="nav-next" aria-label="Piatto successivo">›</button>
+
+    <div class="ov-bottom">
+      <div class="dots" id="dots"></div>
+      <div class="hint">Scorri · tocca · trascina</div>
+    </div>
+  </div>
+
+  <!-- Dati del menu (MODIFICA QUESTO per cambiare i piatti) -->
+  <script src="assets/js/menu-data.js"></script>
+  <!-- Logica -->
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
