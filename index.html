@@ -39,6 +39,33 @@
     </footer>
   </main>
 
+  <!-- Menu del Giorno: pannello a scorrimento -->
+  <div class="overlay sheet" id="giorno-overlay" role="dialog" aria-modal="true" aria-label="Menu del Giorno">
+    <button class="ov-close" id="giorno-close" aria-label="Chiudi">✕</button>
+    <div class="sheet-inner">
+      <header class="giorno-head">
+        <span class="giorno-kicker">✍️ Pranzo · Lun–Ven</span>
+        <h2>Menu del Giorno</h2>
+        <p class="giorno-date" id="giorno-date"></p>
+        <p class="giorno-note" id="giorno-note"></p>
+      </header>
+      <div class="giorno-body" id="giorno-body"></div>
+    </div>
+  </div>
+
+  <!-- Specialità: sotto-menu (Bistecche · Griglia · Pizze) -->
+  <div class="overlay spec" id="spec-overlay" role="dialog" aria-modal="true" aria-label="Specialità della casa">
+    <button class="ov-close" id="spec-close" aria-label="Chiudi">✕</button>
+    <div class="spec-inner">
+      <header class="spec-head">
+        <span class="spec-kicker">✦ Le Specialità della Casa ✦</span>
+        <h2>Specialità</h2>
+        <p>Il meglio del Vicolo, cotto a regola d'arte</p>
+      </header>
+      <div class="spec-cards" id="spec-cards"></div>
+    </div>
+  </div>
+
   <!-- Carosello a schermo intero -->
   <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Piatti">
     <button class="ov-close" id="ov-close" aria-label="Chiudi">✕</button>
