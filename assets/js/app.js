@@ -15,6 +15,11 @@
   const countEl = $("#ov-count");
   const dotsEl = $("#dots");
 
+  // Modalità ANTEPRIMA: aggiungendo ?anteprima all'indirizzo, il Menu del Giorno
+  // è sempre apribile (utile per mostrarlo a qualsiasi ora, es. al socio la sera).
+  // I clienti, con l'indirizzo normale, vedono il regolare blocco orario.
+  const ANTEPRIMA = /anteprima/i.test(location.search) || /anteprima/i.test(location.hash);
+
   /* --- intestazione e piè di pagina ---------------------------------------- */
   function fillStaticText() {
     $("#r-name").textContent = RISTORANTE.nome;
@@ -62,6 +67,7 @@
     return GIORNI[d.getDay()] + " " + d.getDate() + " " + MESI[d.getMonth()];
   }
   function giornoStatus() {
+    if (ANTEPRIMA) return { open: true };
     const d = new Date();
     const mins = d.getHours() * 60 + d.getMinutes();
     const okDay = MENU_GIORNO.giorni.indexOf(d.getDay()) !== -1;
@@ -320,4 +326,11 @@
     buildFeatures();
     buildGrid();
   });
+
+  // Service worker: rende l'app installabile e funzionante offline.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
 })();

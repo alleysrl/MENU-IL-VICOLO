@@ -21,6 +21,30 @@ Categorie su **2 colonne**; toccando una categoria le schede dei piatti scorrono
 
 ---
 
+## ✏️ Modificare il menu (metodo facile, da GitHub.com)
+
+Il modo più semplice per aggiornare — anche dal telefono, senza installare programmi:
+1. Vai su **github.com** → apri il tuo repository **il-vicolo-menu**.
+2. Entra in `assets` → `js` → clicca **`menu-data.js`**.
+3. In alto a destra del file clicca l'icona **matita ✏️** (Edit).
+4. Cambia i testi tra virgolette → in alto clicca **Commit changes**.
+5. Dopo ~1 minuto il sito è aggiornato da solo.
+
+> Se usi anche GitHub Desktop: dopo aver modificato online, prima di rimodificare in locale
+> clicca **Pull origin** (scarica l'ultima versione).
+
+---
+
+## 📲 Installare l'app sul telefono (con il logo)
+
+Apri l'indirizzo del menu nel browser del telefono, poi:
+- **iPhone (Safari):** tocca **Condividi** ⬆️ → **Aggiungi alla schermata Home**.
+- **Android (Chrome):** tocca il menu **⋮** → **Installa app** / **Aggiungi a schermata Home**.
+
+Comparirà l'icona 🔥 **Il Vicolo** come un'app e si aprirà a schermo intero.
+
+---
+
 ## 🗓️ Menu del Giorno (cambia ogni giorno)
 
 Apri `assets/js/menu-data.js` e cerca **`MENU_GIORNO`** (in alto). Ogni mattina cambi lì
@@ -35,6 +59,11 @@ semplice lista a scorrimento.
   apre: "12:00",
   chiude: "15:00",
   ```
+- **Vederlo a qualsiasi ora (per una prova o per mostrarlo):** apri l'indirizzo aggiungendo
+  `?anteprima` in fondo →
+  `https://alleysrl.github.io/il-vicolo-menu/?anteprima`
+  Così il Menu del Giorno si apre anche di sera o nel weekend, **solo per te**; i clienti con
+  l'indirizzo normale continuano a vedere il blocco orario.
 
 ## ⭐ Specialità
 
