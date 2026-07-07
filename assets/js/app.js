@@ -508,13 +508,42 @@
   }
   function openMenuEditor() {
     editInner.innerHTML =
-      '<header class="admin-head"><p class="kick">⭐ Modifica menu completo</p><h1>Menu</h1></header>' +
-      '<div id="me-cats"></div>' +
+      '<p class="kick me-kick">⭐ Modifica menu completo</p>' +
+      '<div class="me-nav">' +
+      '<button type="button" class="me-arrow" id="me-prev" aria-label="Categoria precedente">‹</button>' +
+      '<div class="me-navlabel"><span id="me-catname"></span><small id="me-counter"></small></div>' +
+      '<button type="button" class="me-arrow" id="me-next" aria-label="Categoria successiva">›</button>' +
+      "</div>" +
+      '<div class="me-pager" id="me-pager"></div>' +
       '<button class="btn btn-primary btn-big" id="me-save">Pubblica menu</button>' +
-      '<p class="hint-center" id="me-msg">Le modifiche vanno online per tutti i clienti.</p>';
-    const wrap = $("#me-cats");
-    activeMenu.forEach(function (c) { wrap.appendChild(catSection(c, "menu")); });
-    activeSpec.forEach(function (c) { wrap.appendChild(catSection(c, "specialita")); });
+      '<p class="hint-center" id="me-msg">Scorri le categorie · le modifiche vanno online per tutti.</p>';
+    const pager = $("#me-pager");
+    const pages = [];
+    function addPage(c, tipo, suffix) {
+      const s = catSection(c, tipo); s.classList.add("me-page");
+      pager.appendChild(s);
+      pages.push({ el: s, nome: (c.icona ? c.icona + " " : "") + c.nome + (suffix || "") });
+    }
+    activeMenu.forEach(function (c) { addPage(c, "menu", ""); });
+    activeSpec.forEach(function (c) { addPage(c, "specialita", " · Specialità"); });
+    let idx = 0;
+    function show(i) {
+      idx = (i + pages.length) % pages.length;
+      pages.forEach(function (p, j) { p.el.style.display = j === idx ? "" : "none"; });
+      $("#me-catname").textContent = pages[idx].nome;
+      $("#me-counter").textContent = (idx + 1) + " / " + pages.length;
+      editOverlay.scrollTop = 0;
+    }
+    $("#me-prev").addEventListener("click", function () { show(idx - 1); });
+    $("#me-next").addEventListener("click", function () { show(idx + 1); });
+    let msx = 0, msy = 0, mdrag = false;
+    pager.addEventListener("touchstart", function (e) { msx = e.touches[0].clientX; msy = e.touches[0].clientY; mdrag = true; }, { passive: true });
+    pager.addEventListener("touchend", function (e) {
+      if (!mdrag) return; mdrag = false;
+      const dx = e.changedTouches[0].clientX - msx, dy = e.changedTouches[0].clientY - msy;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) show(idx + (dx < 0 ? 1 : -1));
+    });
+    show(0);
     $("#me-save").addEventListener("click", saveMenuEditor);
     editOverlay.classList.add("open");
     editOverlay.scrollTop = 0;
