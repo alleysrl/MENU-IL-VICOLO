@@ -20,6 +20,10 @@
   // I clienti, con l'indirizzo normale, vedono il regolare blocco orario.
   const ANTEPRIMA = /anteprima/i.test(location.search) || /anteprima/i.test(location.hash);
 
+  // Menu attivo: quello modificato dal titolare (da Supabase) o quello di menu-data.js
+  let activeMenu = MENU;
+  let activeSpec = MENU_SPECIALITA;
+
   /* --- intestazione e piè di pagina ---------------------------------------- */
   function fillStaticText() {
     $("#r-name").textContent = RISTORANTE.nome;
@@ -121,7 +125,7 @@
       '<span class="feat-ico">⭐</span>' +
       '<span class="feat-txt">' +
       '<span class="feat-title">Specialità</span>' +
-      '<span class="feat-sub">Bistecche · Griglia · Pizze</span>' +
+      '<span class="feat-sub">' + activeSpec.map(function (c) { return c.nome; }).join(" · ") + "</span>" +
       "</span>" +
       '<span class="feat-side">›</span>';
     s.addEventListener("click", openSpecialita);
@@ -129,19 +133,27 @@
   }
 
   /* --- MENU DEL GIORNO: pannello a scorrimento ----------------------------- */
+  // Contenuto attivo: quello APPROVATO dallo staff (se esiste), altrimenti
+  // quello scritto a mano in menu-data.js (MENU_GIORNO).
+  let publishedGiorno = null;
+  function currentGiorno() {
+    return publishedGiorno || { data: MENU_GIORNO.data, nota: MENU_GIORNO.nota, sezioni: MENU_GIORNO.sezioni };
+  }
+
   function renderGiorno() {
-    $("#giorno-date").textContent = MENU_GIORNO.data || todayLabel();
+    const g = currentGiorno();
+    $("#giorno-date").textContent = g.data || todayLabel();
     const note = $("#giorno-note");
-    note.textContent = MENU_GIORNO.nota || "";
-    note.style.display = MENU_GIORNO.nota ? "" : "none";
+    note.textContent = g.nota || "";
+    note.style.display = g.nota ? "" : "none";
 
     const body = $("#giorno-body");
     body.innerHTML = "";
-    MENU_GIORNO.sezioni.forEach(function (sez) {
+    (g.sezioni || []).forEach(function (sez) {
       const sec = document.createElement("div");
       sec.className = "g-sec";
       let html = '<h3>' + sez.nome + "</h3><ul>";
-      sez.piatti.forEach(function (p) {
+      (sez.piatti || []).forEach(function (p) {
         const price = p.prezzo ? '<span class="g-price">' + RISTORANTE.valuta + " " + p.prezzo + "</span>" : "";
         html += '<li><span class="g-name">' + p.nome + "</span>" + price + "</li>";
       });
@@ -162,7 +174,7 @@
   function buildSpecCards() {
     const wrap = $("#spec-cards");
     wrap.innerHTML = "";
-    MENU_SPECIALITA.forEach(function (c, i) {
+    activeSpec.forEach(function (c, i) {
       const card = document.createElement("button");
       card.className = "spec-card";
       card.style.animationDelay = i * 130 + "ms";
@@ -182,7 +194,7 @@
   /* --- griglia categorie (2 colonne) --------------------------------------- */
   function buildGrid() {
     const grid = $("#grid");
-    MENU.forEach(function (cat, i) {
+    activeMenu.forEach(function (cat, i) {
       const btn = document.createElement("button");
       btn.className = "cat-btn";
       btn.style.animationDelay = 120 + i * 55 + "ms";
@@ -240,9 +252,10 @@
     const card = document.createElement("article");
     card.className = "card";
     const price = p.prezzo ? '<span class="price">' + RISTORANTE.valuta + " " + p.prezzo + "</span>" : "";
+    const desc = p.descrizione ? "<p>" + p.descrizione + "</p>" : "";
     card.innerHTML =
       '<div class="photo"><div class="fallback">' + (p.emoji || "🍽️") + "</div>" + price + "</div>" +
-      '<div class="body"><h3>' + p.nome + "</h3><p>" + (p.descrizione || "") + '</p><span class="seal">♦</span></div>';
+      '<div class="body"><h3>' + p.nome + "</h3>" + desc + '<span class="seal">♦</span></div>';
     if (p.foto) {
       const img = new Image();
       img.alt = p.nome; img.loading = "lazy";
@@ -320,11 +333,275 @@
   deckEl.addEventListener("mousedown", function (e) { start(e.clientX, e.clientY); });
   window.addEventListener("mouseup", function (e) { end(e.clientX, e.clientY); });
 
+  /* --- EDITOR NASCOSTO (tasto in basso a destra: tieni premuto 5 secondi) --- */
+  const hotspot = $("#notif-hotspot");
+  const pwModal = $("#pw-modal");
+  const pwBox = $("#pw-box");
+  const editOverlay = $("#edit-overlay");
+  const editInner = $("#edit-inner");
+  let editorRole = null, editorPwd = null;
+
+  const GTEMPLATE = [
+    { nome: "Primi", righe: 5 },
+    { nome: "Secondi", righe: 3 },
+    { nome: "Insalatone", righe: 5 },
+    { nome: "Contorni", righe: 4 },
+  ];
+
+  function closePw() { pwModal.classList.remove("open"); }
+  function closeEditor() { editOverlay.classList.remove("open"); updateScroll(); }
+
+  // tieni premuto → password → apre l'editor
+  function openPwPrompt() {
+    pwBox.innerHTML =
+      '<h2>Area riservata</h2><p class="sub">Inserisci la password per modificare il menu.</p>' +
+      '<input type="password" class="field" id="pw-input" inputmode="numeric" placeholder="Password" autocomplete="off">' +
+      '<p class="approve-err" id="pw-err"></p>' +
+      '<div class="approve-actions"><button class="btn btn-no" id="pw-cancel">Annulla</button><button class="btn btn-primary" id="pw-go">Entra</button></div>';
+    pwModal.classList.add("open");
+    const inp = $("#pw-input"); inp.focus();
+    async function go() {
+      const pwd = inp.value.trim();
+      const btn = $("#pw-go"); btn.disabled = true; $("#pw-err").textContent = "Verifico...";
+      let role = null;
+      try { role = await Store.verifyPassword(pwd); }
+      catch (e) { $("#pw-err").textContent = "Errore di connessione"; btn.disabled = false; return; }
+      if (!role) { $("#pw-err").textContent = "Password errata"; inp.value = ""; btn.disabled = false; return; }
+      editorRole = role; editorPwd = pwd;
+      closePw();
+      if (role === "titolare") openTitolareChoice(); else openGiornoEditor();
+    }
+    $("#pw-go").addEventListener("click", go);
+    inp.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+    $("#pw-cancel").addEventListener("click", closePw);
+  }
+
+  // --- editor Menu del Giorno ---
+  function edRow(nome, prezzo) {
+    const row = document.createElement("div"); row.className = "g-row";
+    row.innerHTML =
+      '<input type="text" class="field g-nome" placeholder="Nome piatto">' +
+      '<input type="text" class="field g-prezzo" placeholder="€">' +
+      '<button type="button" class="row-del" aria-label="Togli">✕</button>';
+    row.querySelector(".g-nome").value = nome || "";
+    row.querySelector(".g-prezzo").value = prezzo || "";
+    row.querySelector(".row-del").addEventListener("click", function () { row.remove(); });
+    return row;
+  }
+  function edSection(nome, piatti) {
+    const sec = document.createElement("section"); sec.className = "g-editsec"; sec.dataset.nome = nome;
+    const h = document.createElement("h2"); h.textContent = nome;
+    const list = document.createElement("div"); list.className = "g-rows";
+    (piatti || []).forEach(function (p) { list.appendChild(edRow(p.nome, p.prezzo)); });
+    const add = document.createElement("button"); add.type = "button"; add.className = "btn btn-add"; add.textContent = "+ aggiungi piatto";
+    add.addEventListener("click", function () { list.appendChild(edRow("", "")); });
+    sec.appendChild(h); sec.appendChild(list); sec.appendChild(add);
+    return sec;
+  }
+  function openGiornoEditor() {
+    const g = currentGiorno();
+    editInner.innerHTML =
+      '<header class="admin-head"><p class="kick">✍️ Modifica menu del giorno</p><h1>Menu del Giorno</h1>' +
+      '<input type="text" id="ed-data" class="field field-date" placeholder="Es. Martedì 8 luglio"></header>' +
+      '<div id="ed-sezioni"></div>' +
+      '<label class="nota-label">Nota (facoltativa)<input type="text" id="ed-nota" class="field" placeholder="Es. Primo + Secondo + Contorno · 15€"></label>' +
+      '<button class="btn btn-primary btn-big" id="ed-save">Pubblica</button>' +
+      '<p class="hint-center" id="ed-msg">Va online subito per tutti i clienti.</p>';
+    $("#ed-data").value = (g && g.data) || todayLabel();
+    $("#ed-nota").value = (g && g.nota) || "";
+    const wrap = $("#ed-sezioni");
+    GTEMPLATE.forEach(function (t) {
+      let piatti = null;
+      if (g && g.sezioni) { const m = g.sezioni.filter(function (s) { return s.nome === t.nome; })[0]; if (m) piatti = m.piatti; }
+      if (!piatti) { piatti = []; for (let i = 0; i < t.righe; i++) piatti.push({ nome: "", prezzo: "" }); }
+      wrap.appendChild(edSection(t.nome, piatti));
+    });
+    $("#ed-save").addEventListener("click", saveGiornoEditor);
+    editOverlay.classList.add("open");
+    editOverlay.scrollTop = 0;
+    updateScroll();
+  }
+  async function saveGiornoEditor() {
+    const sezioni = [];
+    editInner.querySelectorAll(".g-editsec").forEach(function (sec) {
+      const piatti = [];
+      sec.querySelectorAll(".g-row").forEach(function (row) {
+        const nome = row.querySelector(".g-nome").value.trim();
+        const prezzo = row.querySelector(".g-prezzo").value.trim();
+        if (nome) piatti.push({ nome: nome, prezzo: prezzo });
+      });
+      if (piatti.length) sezioni.push({ nome: sec.dataset.nome, piatti: piatti });
+    });
+    if (!sezioni.length) { $("#ed-msg").textContent = "Inserisci almeno un piatto."; return; }
+    const data = { data: $("#ed-data").value.trim(), nota: $("#ed-nota").value.trim(), sezioni: sezioni };
+    const btn = $("#ed-save"); btn.disabled = true; $("#ed-msg").textContent = "Pubblico...";
+    try {
+      const ok = await Store.saveGiorno(data, editorPwd);
+      if (ok) { publishedGiorno = await Store.getGiorno(); closeEditor(); showToast("✅ Menu del Giorno pubblicato"); }
+      else { $("#ed-msg").textContent = "Password non valida."; btn.disabled = false; }
+    } catch (e) { $("#ed-msg").textContent = "Errore di connessione."; btn.disabled = false; }
+  }
+
+  /* --- scelta del titolare --- */
+  function openTitolareChoice() {
+    editInner.innerHTML =
+      '<header class="admin-head"><p class="kick">Area titolare</p><h1>Cosa modifichi?</h1></header>' +
+      '<div class="choice-grid">' +
+      '<button class="btn choice-btn" id="ch-giorno"><span>📋</span>Menu del Giorno</button>' +
+      '<button class="btn choice-btn" id="ch-menu"><span>⭐</span>Menu completo<small>prezzi · piatti · foto</small></button>' +
+      "</div>";
+    $("#ch-giorno").addEventListener("click", openGiornoEditor);
+    $("#ch-menu").addEventListener("click", openMenuEditor);
+    editOverlay.classList.add("open");
+    editOverlay.scrollTop = 0;
+    updateScroll();
+  }
+
+  /* --- editor MENU COMPLETO (titolare) --- */
+  function pickPhoto(fotoInput, refresh) {
+    const inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "image/*";
+    inp.addEventListener("change", async function () {
+      const f = inp.files && inp.files[0];
+      if (!f) return;
+      showToast("Carico la foto...");
+      try { fotoInput.value = await Store.uploadPhoto(f); refresh(); showToast("✅ Foto caricata"); }
+      catch (e) { showToast("Errore: crea il 'bucket' foto (vedi guida)"); }
+    });
+    inp.click();
+  }
+  function dishRow(p) {
+    p = p || {};
+    const row = document.createElement("div"); row.className = "dish-edit";
+    row.dataset.emoji = p.emoji || "";
+    row.innerHTML =
+      '<input class="field de-nome" placeholder="Nome piatto">' +
+      '<div class="de-line">' +
+      '<input class="field de-prezzo" placeholder="€">' +
+      '<button type="button" class="de-foto"></button>' +
+      '<button type="button" class="row-del de-del" aria-label="Togli">✕</button>' +
+      "</div>" +
+      '<input class="field de-desc" placeholder="Descrizione (facoltativa)">' +
+      '<input type="hidden" class="de-fotoval">';
+    row.querySelector(".de-nome").value = p.nome || "";
+    row.querySelector(".de-prezzo").value = p.prezzo || "";
+    row.querySelector(".de-desc").value = p.descrizione || "";
+    const fv = row.querySelector(".de-fotoval"); fv.value = p.foto || "";
+    const fb = row.querySelector(".de-foto");
+    function refresh() { fb.innerHTML = fv.value ? '<img src="' + fv.value + '" alt="">' : "📷"; }
+    refresh();
+    fb.addEventListener("click", function () { pickPhoto(fv, refresh); });
+    row.querySelector(".de-del").addEventListener("click", function () { row.remove(); });
+    return row;
+  }
+  function catSection(cat, tipo) {
+    const sec = document.createElement("section"); sec.className = "cat-edit";
+    sec.dataset.id = cat.id; sec.dataset.tipo = tipo; sec.dataset.icona = cat.icona || ""; sec.dataset.nome = cat.nome;
+    const h = document.createElement("h2");
+    h.textContent = (cat.icona || "") + " " + cat.nome + (tipo === "specialita" ? " · Specialità" : "");
+    const list = document.createElement("div"); list.className = "dish-list";
+    (cat.piatti || []).forEach(function (p) { list.appendChild(dishRow(p)); });
+    const add = document.createElement("button"); add.type = "button"; add.className = "btn btn-add"; add.textContent = "+ aggiungi piatto";
+    add.addEventListener("click", function () { list.appendChild(dishRow({})); });
+    sec.appendChild(h); sec.appendChild(list); sec.appendChild(add);
+    return sec;
+  }
+  function openMenuEditor() {
+    editInner.innerHTML =
+      '<header class="admin-head"><p class="kick">⭐ Modifica menu completo</p><h1>Menu</h1></header>' +
+      '<div id="me-cats"></div>' +
+      '<button class="btn btn-primary btn-big" id="me-save">Pubblica menu</button>' +
+      '<p class="hint-center" id="me-msg">Le modifiche vanno online per tutti i clienti.</p>';
+    const wrap = $("#me-cats");
+    activeMenu.forEach(function (c) { wrap.appendChild(catSection(c, "menu")); });
+    activeSpec.forEach(function (c) { wrap.appendChild(catSection(c, "specialita")); });
+    $("#me-save").addEventListener("click", saveMenuEditor);
+    editOverlay.classList.add("open");
+    editOverlay.scrollTop = 0;
+    updateScroll();
+  }
+  async function saveMenuEditor() {
+    const menu = [], spec = [];
+    editInner.querySelectorAll(".cat-edit").forEach(function (sec) {
+      const piatti = [];
+      sec.querySelectorAll(".dish-edit").forEach(function (row) {
+        const nome = row.querySelector(".de-nome").value.trim();
+        if (!nome) return;
+        piatti.push({
+          nome: nome,
+          descrizione: row.querySelector(".de-desc").value.trim(),
+          prezzo: row.querySelector(".de-prezzo").value.trim(),
+          emoji: row.dataset.emoji || "🍽️",
+          foto: row.querySelector(".de-fotoval").value.trim(),
+        });
+      });
+      const cat = { id: sec.dataset.id, nome: sec.dataset.nome, icona: sec.dataset.icona, piatti: piatti };
+      if (sec.dataset.tipo === "specialita") spec.push(cat); else menu.push(cat);
+    });
+    const btn = $("#me-save"); btn.disabled = true; $("#me-msg").textContent = "Pubblico...";
+    try {
+      const ok = await Store.saveMenu({ menu: menu, specialita: spec }, editorPwd);
+      if (ok) {
+        const m = await Store.getMenu();
+        if (m && m.menu) activeMenu = m.menu;
+        if (m && m.specialita) activeSpec = m.specialita;
+        rebuildGrid();
+        closeEditor();
+        showToast("✅ Menu aggiornato");
+      } else { $("#me-msg").textContent = "Serve la password del titolare."; btn.disabled = false; }
+    } catch (e) { $("#me-msg").textContent = "Errore di connessione."; btn.disabled = false; }
+  }
+
+  function initHiddenEditor() {
+    const ring = $("#notif-ring");
+    const HOLD = 5000;
+    let timer = null, rafId = null, startT = 0;
+    function paint(p) {
+      const deg = p * 360;
+      ring.style.background = "conic-gradient(var(--gold) " + deg + "deg, rgba(240,180,41,.15) " + deg + "deg)";
+    }
+    function startPress() {
+      hotspot.classList.add("pressing");
+      startT = performance.now();
+      cancelAnimationFrame(rafId);
+      (function step(now) {
+        const p = Math.min(1, (now - startT) / HOLD);
+        paint(p);
+        if (p < 1) rafId = requestAnimationFrame(step);
+      })(startT);
+      clearTimeout(timer);
+      timer = setTimeout(function () { endPress(); openPwPrompt(); }, HOLD);
+    }
+    function endPress() {
+      hotspot.classList.remove("pressing");
+      clearTimeout(timer);
+      cancelAnimationFrame(rafId);
+      paint(0);
+    }
+    hotspot.addEventListener("pointerdown", function (e) { e.preventDefault(); startPress(); });
+    hotspot.addEventListener("pointerup", endPress);
+    hotspot.addEventListener("pointerleave", endPress);
+    hotspot.addEventListener("pointercancel", endPress);
+    pwModal.addEventListener("click", function (e) { if (e.target === pwModal) closePw(); });
+    editOverlay.addEventListener("click", function (e) { if (e.target === editOverlay) closeEditor(); });
+    $("#edit-close").addEventListener("click", closeEditor);
+  }
+
+  function rebuildGrid() { $("#grid").innerHTML = ""; buildFeatures(); buildGrid(); }
+
   /* --- avvio --------------------------------------------------------------- */
-  document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", async function () {
     fillStaticText();
     buildFeatures();
     buildGrid();
+    initHiddenEditor();
+    try {
+      const m = await Store.getMenu();
+      if (m && m.menu) activeMenu = m.menu;
+      if (m && m.specialita) activeSpec = m.specialita;
+      if (m && (m.menu || m.specialita)) rebuildGrid();
+      publishedGiorno = await Store.getGiorno();
+    } catch (e) {}
   });
 
   // Service worker: rende l'app installabile e funzionante offline.

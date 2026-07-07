@@ -5,14 +5,14 @@
    È diviso in 4 parti:
      1) RISTORANTE        → nome, indirizzo, telefono, orari
      2) MENU_GIORNO       → il Menu del Giorno (cambia ogni giorno, no foto)
-     3) MENU_SPECIALITA   → le Specialità (Bistecche · Griglia · Pizze)
+     3) MENU_SPECIALITA   → le Specialità (Primi · Griglia)
      4) MENU              → il menu principale (le altre categorie)
 
    Regole rapide:
    • Cambia solo i testi tra virgolette "...".
    • Prezzo = solo il numero (senza €). Es: "8,50". Vuoto = nessun prezzo:  prezzo: ""
-   • Foto: lascia  foto: ""  per una card elegante con l'icona (impostazione attuale).
-            Per usare una foto vera: metti "foto/nome.jpg" (file nella cartella "foto") o un link.
+     Per il prezzo all'etto scrivi es:  prezzo: "6/etto"
+   • Foto: "foto/nome.jpg" (file nella cartella "foto"). Vuoto  foto: ""  = icona elegante.
    ========================================================================== */
 
 
@@ -30,15 +30,14 @@ const RISTORANTE = {
 
 /* ============================== 2) MENU DEL GIORNO =========================
    >>> QUESTO È IL MENU CHE CAMBIA OGNI GIORNO — MODIFICA QUI OGNI MATTINA <<<
-   Niente foto: è una semplice lista a scorrimento.
+   (I piatti qui sotto sono d'esempio: sostituiscili con quelli del giorno.)
 
    QUANDO SI PUÒ APRIRE:
-   • "giorni"  → i giorni in cui è disponibile.  1=Lun 2=Mar 3=Mer 4=Gio 5=Ven 6=Sab 0=Dom
-   • "apre"/"chiude" → la fascia oraria (formato 24h). Fuori orario il riquadro è bloccato.
-   Così com'è: solo a PRANZO, dal LUNEDÌ al VENERDÌ, 12:00–15:00 (di sera e nel weekend è chiuso).
+   • "giorni"  → i giorni disponibili.  1=Lun 2=Mar 3=Mer 4=Gio 5=Ven 6=Sab 0=Dom
+   • "apre"/"chiude" → la fascia oraria (24h). Fuori orario il riquadro è bloccato.
+   Così com'è: solo a PRANZO, LUN–VEN, 12:00–15:00 (di sera e nel weekend è chiuso).
 
-   LA DATA: lascia  data: ""  per mostrare in automatico la data di oggi,
-            oppure scrivila tu, es:  data: "Martedì 8 luglio"
+   LA DATA: lascia  data: ""  per la data di oggi automatica, oppure es. data: "Martedì 8 luglio"
    ========================================================================== */
 const MENU_GIORNO = {
   giorni: [1, 2, 3, 4, 5],
@@ -90,22 +89,19 @@ const MENU_GIORNO = {
 
 
 /* ============================== 3) MENU SPECIALITÀ =========================
-   Sotto-menu delle Specialità: Bistecche · Griglia · Pizze.
-   Metti qui SOLO la selezione speciale (non tutti i piatti della griglia/pizze
-   del menu principale devono stare qui). Le Bistecche stanno solo qui.
+   Sotto-menu delle Specialità: Primi · Griglia (con bistecche e Fiorentina).
    ========================================================================== */
 const MENU_SPECIALITA = [
   {
-    id: "spec-bistecche",
-    nome: "Bistecche",
-    icona: "🥩",
+    id: "spec-primi",
+    nome: "Primi",
+    icona: "🍝",
     piatti: [
-      { nome: "Bistecca alla Fiorentina", descrizione: "Chianina al sangue · prezzo all'etto", prezzo: "6", emoji: "🥩", foto: "" },
-      { nome: "Costata di manzo", descrizione: "Frollata, circa 500 g", prezzo: "24", emoji: "🥩", foto: "" },
-      { nome: "Filetto di manzo", descrizione: "Taglio pregiato, cottura a scelta", prezzo: "22", emoji: "🥩", foto: "" },
-      { nome: "Tomahawk", descrizione: "Circa 1 kg, ideale per due", prezzo: "55", emoji: "🥩", foto: "" },
-      { nome: "Picanha alla brace", descrizione: "Taglio brasiliano, succoso", prezzo: "19", emoji: "🥩", foto: "" },
-      { nome: "Tagliata di manzo", descrizione: "Con rucola e scaglie di grana", prezzo: "18", emoji: "🥩", foto: "" },
+      { nome: "Tagliatelle al papero", descrizione: "", prezzo: "14", emoji: "🍝", foto: "foto/tagliatelle-anatra.jpg" },
+      { nome: "Tagliatelle ai porcini", descrizione: "", prezzo: "14", emoji: "🍄", foto: "foto/tagliatelle-porcini.jpg" },
+      { nome: "Culurgiones", descrizione: "", prezzo: "14", emoji: "🥟", foto: "foto/culurgiones.jpg" },
+      { nome: "Spaghetti allo scoglio", descrizione: "", prezzo: "15", emoji: "🦐", foto: "foto/spaghetti-scoglio.jpg" },
+      { nome: "Tagliatelle balsamia", descrizione: "", prezzo: "17", emoji: "🍝", foto: "foto/tagliatelle-balsamia.jpg" },
     ],
   },
   {
@@ -113,30 +109,17 @@ const MENU_SPECIALITA = [
     nome: "Griglia",
     icona: "🔥",
     piatti: [
-      { nome: "Grigliata mista del Vicolo", descrizione: "Salsiccia, costine, pancetta e spiedini", prezzo: "20", emoji: "🔥", foto: "" },
-      { nome: "Costine di maiale", descrizione: "Marinate e grigliate", prezzo: "14", emoji: "🍖", foto: "" },
-      { nome: "Spiedini misti", descrizione: "Carne mista e verdure alla brace", prezzo: "13", emoji: "🍢", foto: "" },
-      { nome: "Braciole di maiale", descrizione: "Alla brace con rosmarino", prezzo: "12", emoji: "🍖", foto: "" },
-    ],
-  },
-  {
-    id: "spec-pizze",
-    nome: "Pizze",
-    icona: "🍕",
-    piatti: [
-      { nome: "Del Vicolo", descrizione: "Bufala, 'nduja e basilico fresco", prezzo: "10", emoji: "🔥", foto: "" },
-      { nome: "Boscaiola", descrizione: "Funghi, salsiccia e mozzarella", prezzo: "9,50", emoji: "🍄", foto: "" },
-      { nome: "Diavola", descrizione: "Salame piccante e mozzarella", prezzo: "8", emoji: "🌶️", foto: "" },
-      { nome: "Capricciosa", descrizione: "Prosciutto, funghi, carciofi, olive", prezzo: "9", emoji: "🍕", foto: "" },
+      { nome: "Tagliata di manzo, rucola e grana", descrizione: "", prezzo: "19", emoji: "🥩", foto: "" },
+      { nome: "Tagliata di manzo con porcini", descrizione: "", prezzo: "21", emoji: "🥩", foto: "foto/tagliata-porcini.jpg" },
+      { nome: "Bistecca di manzo 500 g", descrizione: "", prezzo: "27", emoji: "🥩", foto: "foto/bistecchina-manzo.jpg" },
+      { nome: "Bistecca di costata", descrizione: "Min. 1 kg", prezzo: "5/etto", emoji: "🥩", foto: "" },
+      { nome: "Bistecca Fiorentina", descrizione: "Min. 1,2 kg", prezzo: "6/etto", emoji: "🥩", foto: "foto/fiorentina.jpg" },
     ],
   },
 ];
 
 
-/* ============================== 4) MENU PRINCIPALE =========================
-   Le Bistecche NON sono qui (stanno nelle Specialità).
-   Griglia e Pizze restano anche qui, con la lista completa.
-   ========================================================================== */
+/* ============================== 4) MENU PRINCIPALE ========================= */
 const MENU = [
 
   /* ---------------------------------------------------------------- ANTIPASTI */
@@ -145,12 +128,12 @@ const MENU = [
     nome: "Antipasti",
     icona: "🥖",
     piatti: [
-      { nome: "Tagliere del Vicolo", descrizione: "Salumi e formaggi misti con miele e composte", prezzo: "14", emoji: "🧀", foto: "" },
-      { nome: "Bruschette miste", descrizione: "Pane croccante con pomodoro, lardo e funghi", prezzo: "7", emoji: "🍅", foto: "" },
-      { nome: "Fritto misto all'italiana", descrizione: "Olive ascolane, mozzarelline e verdure", prezzo: "9", emoji: "🍢", foto: "" },
-      { nome: "Provola alla piastra", descrizione: "Fusa con speck croccante e pepe nero", prezzo: "8", emoji: "🧀", foto: "" },
-      { nome: "Polpette al sugo", descrizione: "Della nonna, al pomodoro e basilico", prezzo: "8", emoji: "🍖", foto: "" },
-      { nome: "Crostini toscani", descrizione: "Con paté di fegatini e cipolla rossa", prezzo: "7", emoji: "🥖", foto: "" },
+      { nome: "Crostini misti dello chef", descrizione: "", prezzo: "9", emoji: "🥖", foto: "foto/crostini-misti.jpg" },
+      { nome: "Gran tagliere toscano", descrizione: "Per 2 persone", prezzo: "18", emoji: "🧀", foto: "foto/gran-tagliere-toscano.jpg" },
+      { nome: "Burrata alla mugellana", descrizione: "", prezzo: "14", emoji: "🧀", foto: "foto/burrata.jpg" },
+      { nome: "Antipasto sardo", descrizione: "", prezzo: "16", emoji: "🫒", foto: "" },
+      { nome: "Carpaccio di bresaola", descrizione: "", prezzo: "15", emoji: "🥩", foto: "foto/carpaccio-bresaola.jpg" },
+      { nome: "Caprese con verdure grigliate", descrizione: "", prezzo: "14", emoji: "🍅", foto: "" },
     ],
   },
 
@@ -160,12 +143,12 @@ const MENU = [
     nome: "Primi",
     icona: "🍝",
     piatti: [
-      { nome: "Tagliatelle al ragù", descrizione: "Ragù di manzo cotto a lungo", prezzo: "11", emoji: "🍝", foto: "" },
-      { nome: "Rigatoni all'amatriciana", descrizione: "Guanciale, pecorino e pomodoro", prezzo: "10", emoji: "🍝", foto: "" },
-      { nome: "Gnocchi al pomodoro", descrizione: "Fatti in casa, pomodoro e basilico", prezzo: "9", emoji: "🥔", foto: "" },
-      { nome: "Paccheri cacio e pepe", descrizione: "Pecorino romano e pepe nero", prezzo: "11", emoji: "🧀", foto: "" },
-      { nome: "Risotto ai porcini", descrizione: "Mantecato con funghi porcini", prezzo: "12", emoji: "🍄", foto: "" },
-      { nome: "Pappardelle al cinghiale", descrizione: "Sugo di cinghiale in umido", prezzo: "12", emoji: "🍝", foto: "" },
+      { nome: "Tortelli di patate burro e salvia", descrizione: "", prezzo: "15", emoji: "🥟", foto: "foto/tortelli-burro-salvia.jpg" },
+      { nome: "Tortelli di patate al ragù", descrizione: "", prezzo: "16", emoji: "🥟", foto: "foto/tortelli-ragu.jpg" },
+      { nome: "Malloreddus alla campidanese", descrizione: "", prezzo: "14", emoji: "🍝", foto: "foto/malloreddus.jpg" },
+      { nome: "Pappardelle alla maremmana", descrizione: "", prezzo: "16", emoji: "🍝", foto: "foto/pappardelle-cinghiale.jpg" },
+      { nome: "Pici al pecorino e pepe", descrizione: "", prezzo: "14", emoji: "🍝", foto: "foto/pici-cacio-pepe.jpg" },
+      { nome: "Tagliatelle al ragù", descrizione: "", prezzo: "14", emoji: "🍝", foto: "" },
     ],
   },
 
@@ -175,12 +158,12 @@ const MENU = [
     nome: "Secondi",
     icona: "🍖",
     piatti: [
-      { nome: "Stinco di maiale al forno", descrizione: "Cottura lenta con patate arrosto", prezzo: "15", emoji: "🍖", foto: "" },
-      { nome: "Brasato al Barolo", descrizione: "Manzo brasato nel vino rosso", prezzo: "16", emoji: "🍷", foto: "" },
-      { nome: "Cotoletta alla milanese", descrizione: "Impanata e dorata nel burro", prezzo: "14", emoji: "🍖", foto: "" },
-      { nome: "Spezzatino con patate", descrizione: "In umido, ricetta di casa", prezzo: "13", emoji: "🥘", foto: "" },
-      { nome: "Scaloppine ai funghi", descrizione: "Fettine di vitello e champignon", prezzo: "13", emoji: "🍄", foto: "" },
-      { nome: "Coniglio alla cacciatora", descrizione: "Con olive e erbe aromatiche", prezzo: "14", emoji: "🍖", foto: "" },
+      { nome: "Peposo alla fornacina", descrizione: "", prezzo: "16", emoji: "🥘", foto: "foto/peposo.jpg" },
+      { nome: "Bocconcini di cinghiale in umido", descrizione: "", prezzo: "17", emoji: "🍖", foto: "foto/bocconcini-cinghiale.jpg" },
+      { nome: "Polpette di manzo alla fiorentina", descrizione: "", prezzo: "15", emoji: "🍖", foto: "foto/polpette-manzo.jpg" },
+      { nome: "Polpette di cacio e uova al sugo", descrizione: "", prezzo: "14", emoji: "🧀", foto: "" },
+      { nome: "Melanzane alla greca", descrizione: "", prezzo: "15", emoji: "🍆", foto: "foto/melanzane-greca.jpg" },
+      { nome: "Salsiccia e fagioli", descrizione: "", prezzo: "14", emoji: "🌭", foto: "" },
     ],
   },
 
@@ -190,12 +173,12 @@ const MENU = [
     nome: "Griglia",
     icona: "🔥",
     piatti: [
-      { nome: "Grigliata mista del Vicolo", descrizione: "Salsiccia, costine, pancetta e spiedini", prezzo: "20", emoji: "🔥", foto: "" },
-      { nome: "Salsiccia alla brace", descrizione: "Nostrana, cotta a legna", prezzo: "10", emoji: "🌭", foto: "" },
-      { nome: "Costine di maiale", descrizione: "Marinate e grigliate", prezzo: "14", emoji: "🍖", foto: "" },
-      { nome: "Spiedini misti", descrizione: "Carne mista e verdure alla brace", prezzo: "13", emoji: "🍢", foto: "" },
-      { nome: "Braciole di maiale", descrizione: "Alla brace con rosmarino", prezzo: "12", emoji: "🍖", foto: "" },
-      { nome: "Pancetta arrotolata", descrizione: "Croccante alla griglia", prezzo: "11", emoji: "🥓", foto: "" },
+      { nome: "Hamburger di chianina fatto in casa", descrizione: "", prezzo: "14", emoji: "🍔", foto: "" },
+      { nome: "Svizzera del buon gustaio", descrizione: "", prezzo: "17", emoji: "🥩", foto: "foto/svizzera.jpg" },
+      { nome: "Rosticciana in doppia cottura", descrizione: "", prezzo: "15", emoji: "🍖", foto: "foto/rosticciana-salsiccia.jpg" },
+      { nome: "Salsicce toscane alla griglia", descrizione: "", prezzo: "13", emoji: "🌭", foto: "" },
+      { nome: "Agnello alla scottadito", descrizione: "", prezzo: "17", emoji: "🍖", foto: "foto/agnello-scottadito.jpg" },
+      { nome: "Tagliata di manzo al rosmarino", descrizione: "", prezzo: "22", emoji: "🥩", foto: "foto/tagliata-rosmarino.jpg" },
     ],
   },
 
@@ -205,30 +188,41 @@ const MENU = [
     nome: "Contorni",
     icona: "🥗",
     piatti: [
-      { nome: "Patate al forno", descrizione: "Croccanti al rosmarino", prezzo: "4", emoji: "🥔", foto: "" },
-      { nome: "Verdure grigliate", descrizione: "Di stagione, alla brace", prezzo: "5", emoji: "🫑", foto: "" },
-      { nome: "Insalata mista", descrizione: "Fresca di giornata", prezzo: "4", emoji: "🥗", foto: "" },
-      { nome: "Fagioli all'uccelletto", descrizione: "In umido con salvia", prezzo: "5", emoji: "🫘", foto: "" },
-      { nome: "Funghi trifolati", descrizione: "Con aglio e prezzemolo", prezzo: "5", emoji: "🍄", foto: "" },
-      { nome: "Spinaci saltati", descrizione: "Al burro o all'aglio", prezzo: "4", emoji: "🥬", foto: "" },
+      { nome: "Patate al forno", descrizione: "", prezzo: "6", emoji: "🥔", foto: "foto/patate-arrosto.jpg" },
+      { nome: "Fagioli saltati", descrizione: "", prezzo: "6", emoji: "🫘", foto: "foto/fagioli.jpg" },
+      { nome: "Spinaci aglio e olio", descrizione: "", prezzo: "6", emoji: "🥬", foto: "foto/spinaci.jpg" },
+      { nome: "Verdure grigliate", descrizione: "", prezzo: "7", emoji: "🫑", foto: "foto/verdure-grigliate.jpg" },
     ],
   },
 
-  /* --------------------------------------------------------------------- PIZZE */
+  /* --------------------------------------------------------------------- PIZZE
+     16 pizze reali con foto. PREZZI DA INSERIRE (metti il numero tra le virgolette
+     di  prezzo: ""  — es. prezzo: "7"). Puoi anche aggiungere gli ingredienti in "descrizione". */
   {
     id: "pizze",
     nome: "Pizze",
     icona: "🍕",
     piatti: [
-      { nome: "Margherita", descrizione: "Pomodoro, mozzarella e basilico", prezzo: "6", emoji: "🍕", foto: "" },
-      { nome: "Marinara", descrizione: "Pomodoro, aglio e origano", prezzo: "5,50", emoji: "🍅", foto: "" },
-      { nome: "Diavola", descrizione: "Salame piccante e mozzarella", prezzo: "8", emoji: "🌶️", foto: "" },
-      { nome: "Quattro formaggi", descrizione: "Mozzarella, gorgonzola, grana, provola", prezzo: "8,50", emoji: "🧀", foto: "" },
-      { nome: "Capricciosa", descrizione: "Prosciutto, funghi, carciofi, olive", prezzo: "9", emoji: "🍕", foto: "" },
-      { nome: "Del Vicolo", descrizione: "Bufala, 'nduja e basilico fresco", prezzo: "10", emoji: "🔥", foto: "" },
-      { nome: "Boscaiola", descrizione: "Funghi, salsiccia e mozzarella", prezzo: "9,50", emoji: "🍄", foto: "" },
+      { nome: "Margherita", descrizione: "", prezzo: "", emoji: "🍕", foto: "foto/pizza-margherita.jpg" },
+      { nome: "Marinara", descrizione: "", prezzo: "", emoji: "🍅", foto: "foto/pizza-marinara.jpg" },
+      { nome: "Napoli", descrizione: "", prezzo: "", emoji: "🍕", foto: "foto/pizza-napoli.jpg" },
+      { nome: "Partenopea", descrizione: "", prezzo: "", emoji: "🍕", foto: "foto/pizza-partenopea.jpg" },
+      { nome: "Capricciosa", descrizione: "", prezzo: "", emoji: "🍕", foto: "foto/pizza-capricciosa.jpg" },
+      { nome: "Diavola", descrizione: "", prezzo: "", emoji: "🌶️", foto: "foto/pizza-diavola.jpg" },
+      { nome: "Quattro formaggi", descrizione: "", prezzo: "", emoji: "🧀", foto: "foto/pizza-4-formaggi.jpg" },
+      { nome: "Prosciutto e funghi", descrizione: "", prezzo: "", emoji: "🍄", foto: "foto/pizza-prosciutto-funghi.jpg" },
+      { nome: "Prosciutto e porcini", descrizione: "", prezzo: "", emoji: "🍄", foto: "foto/pizza-prosciutto-porcini.jpg" },
+      { nome: "Vegetariana", descrizione: "", prezzo: "", emoji: "🥬", foto: "foto/pizza-vegetariana.jpg" },
+      { nome: "Melanzane e salsiccia", descrizione: "", prezzo: "", emoji: "🍆", foto: "foto/pizza-melanzane-salsiccia.jpg" },
+      { nome: "Tonno e cipolla", descrizione: "", prezzo: "", emoji: "🐟", foto: "foto/pizza-tonno-cipolla.jpg" },
+      { nome: "Bismark", descrizione: "", prezzo: "", emoji: "🍳", foto: "foto/pizza-bismark.jpg" },
+      { nome: "Americana", descrizione: "", prezzo: "", emoji: "🍕", foto: "foto/pizza-americana.jpg" },
+      { nome: "Tirolese", descrizione: "", prezzo: "", emoji: "🥓", foto: "foto/pizza-tirolese.jpg" },
+      { nome: "Maialona", descrizione: "", prezzo: "", emoji: "🐷", foto: "foto/pizza-maialona.jpg" },
     ],
   },
+
+  /* ===== DA QUI IN GIÙ: CATEGORIE D'ESEMPIO (da sostituire coi piatti veri) ===== */
 
   /* --------------------------------------------------------------------- DOLCI */
   {
