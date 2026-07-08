@@ -213,7 +213,8 @@ body::before{
   color:var(--gold); font-size:.95rem; min-width:54px; text-align:right;
 }
 .ov-close{
-  position:absolute; top:14px; right:16px;
+  position:absolute; top:14px; right:16px; z-index:20;
+  will-change:transform;   /* forza la ✕ su un livello proprio: su iOS resta sopra l'area scorrevole */
   width:44px; height:44px; border-radius:50%;
   border:1px solid var(--line); background:rgba(0,0,0,.35);
   color:var(--cream); font-size:1.4rem; line-height:1; cursor:pointer;
@@ -447,7 +448,7 @@ body::before{
   z-index:55;
   background:radial-gradient(90% 60% at 50% 0%, rgba(90,140,110,.16), transparent 60%), rgba(8,11,10,.94);
 }
-.sheet-inner{ flex:1; width:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:56px 14px 130px; }
+.sheet-inner{ flex:1; width:100%; overflow-y:auto; padding:56px 14px 130px; }
 .giorno-head{ text-align:center; max-width:680px; margin:0 auto 22px; }
 .giorno-kicker{ font-family:var(--font-head); text-transform:uppercase; letter-spacing:.26em; font-size:.72rem; color:#9fd8b6; }
 .giorno-head h2{ font-family:var(--font-display); font-weight:800; font-size:2.4rem; margin:.15em 0 .12em; color:#f4efe6; }
@@ -479,7 +480,7 @@ body::before{
   z-index:55;
   background:radial-gradient(90% 60% at 50% 0%, rgba(240,180,41,.18), transparent 60%), rgba(7,5,3,.92);
 }
-.spec-inner{ flex:1; width:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; justify-content:center; padding:64px 22px 44px; }
+.spec-inner{ flex:1; width:100%; overflow-y:auto; display:flex; flex-direction:column; justify-content:center; padding:64px 22px 44px; }
 .spec-head{ text-align:center; margin:0 auto 26px; }
 .spec-kicker{ font-family:var(--font-head); text-transform:uppercase; letter-spacing:.2em; font-size:.74rem; color:var(--gold); }
 .spec-head h2{ font-family:var(--font-display); font-weight:900; font-size:2.8rem; margin:.14em 0 .12em; color:#fff3cf; text-shadow:0 0 32px rgba(240,180,41,.55); }
@@ -665,3 +666,14 @@ body::before{
 .me-page{ animation:mePageIn .32s ease; }
 .me-page > h2{ display:none; }   /* il nome è già nella barra di navigazione */
 @keyframes mePageIn{ from{ opacity:0; transform:translateX(24px); } to{ opacity:1; transform:none; } }
+
+/* ---- DISPONIBILITÀ MENU DEL GIORNO (editor) ---- */
+.ed-avail{ background:var(--bg-2); border:1px solid var(--line); border-radius:16px; padding:16px; margin:16px 0 0; }
+.ed-avail h2{ font-family:var(--font-head); text-transform:uppercase; letter-spacing:.12em; font-size:1rem; color:var(--gold); margin:0 0 12px; }
+.ed-avail .hint-center{ margin-top:12px; }
+.day-toggles{ display:flex; flex-wrap:wrap; gap:8px; }
+.day-tog{ flex:1 1 0; min-width:52px; padding:12px 6px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--muted); font-family:var(--font-head); text-transform:uppercase; letter-spacing:.04em; font-size:.85rem; cursor:pointer; transition:background .15s ease, color .15s ease, border-color .15s ease; }
+.day-tog.on{ background:linear-gradient(180deg, var(--gold), #d99a1e); color:#1a1206; border-color:transparent; font-weight:600; }
+.time-row{ display:flex; gap:12px; margin-top:12px; }
+.time-row label{ flex:1; display:flex; flex-direction:column; gap:6px; font-family:var(--font-head); text-transform:uppercase; letter-spacing:.08em; font-size:.72rem; color:var(--muted); }
+.time-row input[type="time"]{ color-scheme:dark; }

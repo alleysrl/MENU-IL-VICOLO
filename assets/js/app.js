@@ -72,10 +72,11 @@
   }
   function giornoStatus() {
     if (ANTEPRIMA) return { open: true };
+    const cfg = giornoConfig();
     const d = new Date();
     const mins = d.getHours() * 60 + d.getMinutes();
-    const okDay = MENU_GIORNO.giorni.indexOf(d.getDay()) !== -1;
-    const okTime = mins >= parseHM(MENU_GIORNO.apre) && mins < parseHM(MENU_GIORNO.chiude);
+    const okDay = cfg.giorni.indexOf(d.getDay()) !== -1;
+    const okTime = mins >= parseHM(cfg.apre) && mins < parseHM(cfg.chiude);
     return { open: okDay && okTime };
   }
   function giorniLabel(arr) {
@@ -85,7 +86,8 @@
     return s.map((d) => AB[d]).join(" · ");
   }
   function scheduleLabel() {
-    return "Pranzo · " + giorniLabel(MENU_GIORNO.giorni) + " · " + MENU_GIORNO.apre + "–" + MENU_GIORNO.chiude;
+    const cfg = giornoConfig();
+    return "Pranzo · " + giorniLabel(cfg.giorni) + " · " + cfg.apre + "–" + cfg.chiude;
   }
 
   /* --- RIQUADRI SPECIALI (in cima alla griglia) ---------------------------- */
@@ -138,6 +140,15 @@
   let publishedGiorno = null;
   function currentGiorno() {
     return publishedGiorno || { data: MENU_GIORNO.data, nota: MENU_GIORNO.nota, sezioni: MENU_GIORNO.sezioni };
+  }
+  // impostazioni di disponibilità: quelle salvate dallo staff (Supabase) o quelle di default
+  function giornoConfig() {
+    const g = publishedGiorno;
+    return {
+      giorni: g && Array.isArray(g.giorni) ? g.giorni : MENU_GIORNO.giorni,
+      apre: g && g.apre ? g.apre : MENU_GIORNO.apre,
+      chiude: g && g.chiude ? g.chiude : MENU_GIORNO.chiude,
+    };
   }
 
   function renderGiorno() {
@@ -398,17 +409,36 @@
     sec.appendChild(h); sec.appendChild(list); sec.appendChild(add);
     return sec;
   }
+  const GDAYS = [["Lun", 1], ["Mar", 2], ["Mer", 3], ["Gio", 4], ["Ven", 5], ["Sab", 6], ["Dom", 0]];
   function openGiornoEditor() {
     const g = currentGiorno();
+    const cfg = giornoConfig();
+    const toggles = GDAYS.map(function (d) {
+      const on = cfg.giorni.indexOf(d[1]) !== -1 ? " on" : "";
+      return '<button type="button" class="day-tog' + on + '" data-day="' + d[1] + '">' + d[0] + "</button>";
+    }).join("");
     editInner.innerHTML =
       '<header class="admin-head"><p class="kick">✍️ Modifica menu del giorno</p><h1>Menu del Giorno</h1>' +
       '<input type="text" id="ed-data" class="field field-date" placeholder="Es. Martedì 8 luglio"></header>' +
       '<div id="ed-sezioni"></div>' +
       '<label class="nota-label">Nota (facoltativa)<input type="text" id="ed-nota" class="field" placeholder="Es. Primo + Secondo + Contorno · 15€"></label>' +
+      '<section class="ed-avail"><h2>Quando è aperto</h2>' +
+      '<div class="day-toggles">' + toggles + "</div>" +
+      '<div class="time-row">' +
+      '<label>Apre<input type="time" id="ed-apre" class="field"></label>' +
+      '<label>Chiude<input type="time" id="ed-chiude" class="field"></label>' +
+      "</div>" +
+      '<p class="hint-center">Fuori da questi giorni/orari il Menu del Giorno è bloccato per i clienti.</p>' +
+      "</section>" +
       '<button class="btn btn-primary btn-big" id="ed-save">Pubblica</button>' +
       '<p class="hint-center" id="ed-msg">Va online subito per tutti i clienti.</p>';
     $("#ed-data").value = (g && g.data) || todayLabel();
     $("#ed-nota").value = (g && g.nota) || "";
+    $("#ed-apre").value = cfg.apre;
+    $("#ed-chiude").value = cfg.chiude;
+    editInner.querySelectorAll(".day-tog").forEach(function (b) {
+      b.addEventListener("click", function () { b.classList.toggle("on"); });
+    });
     const wrap = $("#ed-sezioni");
     GTEMPLATE.forEach(function (t) {
       let piatti = null;
@@ -433,11 +463,20 @@
       if (piatti.length) sezioni.push({ nome: sec.dataset.nome, piatti: piatti });
     });
     if (!sezioni.length) { $("#ed-msg").textContent = "Inserisci almeno un piatto."; return; }
-    const data = { data: $("#ed-data").value.trim(), nota: $("#ed-nota").value.trim(), sezioni: sezioni };
+    const giorni = [];
+    editInner.querySelectorAll(".day-tog.on").forEach(function (b) { giorni.push(parseInt(b.dataset.day, 10)); });
+    const data = {
+      data: $("#ed-data").value.trim(),
+      nota: $("#ed-nota").value.trim(),
+      sezioni: sezioni,
+      giorni: giorni,
+      apre: $("#ed-apre").value || MENU_GIORNO.apre,
+      chiude: $("#ed-chiude").value || MENU_GIORNO.chiude,
+    };
     const btn = $("#ed-save"); btn.disabled = true; $("#ed-msg").textContent = "Pubblico...";
     try {
       const ok = await Store.saveGiorno(data, editorPwd);
-      if (ok) { publishedGiorno = await Store.getGiorno(); closeEditor(); showToast("✅ Menu del Giorno pubblicato"); }
+      if (ok) { publishedGiorno = await Store.getGiorno(); rebuildGrid(); closeEditor(); showToast("✅ Menu del Giorno pubblicato"); }
       else { $("#ed-msg").textContent = "Password non valida."; btn.disabled = false; }
     } catch (e) { $("#ed-msg").textContent = "Errore di connessione."; btn.disabled = false; }
   }
@@ -625,11 +664,12 @@
     buildGrid();
     initHiddenEditor();
     try {
-      const m = await Store.getMenu();
+      const res = await Promise.all([Store.getMenu(), Store.getGiorno()]);
+      const m = res[0];
       if (m && m.menu) activeMenu = m.menu;
       if (m && m.specialita) activeSpec = m.specialita;
-      if (m && (m.menu || m.specialita)) rebuildGrid();
-      publishedGiorno = await Store.getGiorno();
+      publishedGiorno = res[1];
+      rebuildGrid();   // riflette menu modificato + giorni/orari del Menu del Giorno
     } catch (e) {}
   });
 

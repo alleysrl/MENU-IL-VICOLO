@@ -24,7 +24,7 @@ Categorie su **2 colonne**; toccando una categoria le schede dei piatti scorrono
 ## ✏️ Modificare il menu (metodo facile, da GitHub.com)
 
 Il modo più semplice per aggiornare — anche dal telefono, senza installare programmi:
-1. Vai su **github.com** → apri il tuo repository **il-vicolo-menu**.
+1. Vai su **github.com** → apri il tuo repository **MENU-IL-VICOLO**.
 2. Entra in `assets` → `js` → clicca **`menu-data.js`**.
 3. In alto a destra del file clicca l'icona **matita ✏️** (Edit).
 4. Cambia i testi tra virgolette → in alto clicca **Commit changes**.
@@ -61,7 +61,7 @@ semplice lista a scorrimento.
   ```
 - **Vederlo a qualsiasi ora (per una prova o per mostrarlo):** apri l'indirizzo aggiungendo
   `?anteprima` in fondo →
-  `https://alleysrl.github.io/il-vicolo-menu/?anteprima`
+  `https://alleysrl.github.io/MENU-IL-VICOLO/?anteprima`
   Così il Menu del Giorno si apre anche di sera o nel weekend, **solo per te**; i clienti con
   l'indirizzo normale continuano a vedere il blocco orario.
 
@@ -99,7 +99,7 @@ Dopo aver modificato i file, per mandare le modifiche online:
 3. Clicca **Commit to main**.
 4. In alto clicca **Push origin**.
 5. Dopo ~1 minuto il sito online è aggiornato:
-   `https://alleysrl.github.io/il-vicolo-menu/`
+   `https://alleysrl.github.io/MENU-IL-VICOLO/`
 
 ### 📱 QR code per il tavolo
 Genera un QR code gratuito da quell'indirizzo (cerca "QR code generator"), stampalo e mettilo
