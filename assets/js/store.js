@@ -36,6 +36,32 @@ const Store = (function () {
     return d && Object.keys(d).length ? d : null;   // null se vuoto -> il sito usa il menu di riserva
   }
 
+  // Riduce una foto (max lato lungo = maxSize, JPEG di qualità 'q') prima del caricamento.
+  // Se qualcosa va storto, restituisce il file originale (robusto).
+  function resizeImage(file, maxSize, q) {
+    return new Promise(function (resolve) {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) { resolve(file); return; }
+        if (Math.max(w, h) > maxSize) {
+          if (w >= h) { h = Math.round(h * maxSize / w); w = maxSize; }
+          else { w = Math.round(w * maxSize / h); h = maxSize; }
+        }
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          canvas.toBlob(function (blob) { resolve(blob || file); }, "image/jpeg", q);
+        } catch (e) { resolve(file); }
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
   return {
     // ritorna 'titolare' | 'staff' | null
     verifyPassword: function (pwd) { return rpc("verify_pw", { pwd: pwd }); },
@@ -50,12 +76,13 @@ const Store = (function () {
 
     // Carica una foto nel bucket 'foto' e restituisce l'indirizzo pubblico
     uploadPhoto: async function (file) {
-      const clean = file.name.replace(/[^a-zA-Z0-9.]/g, "-").toLowerCase();
-      const name = Date.now() + "-" + clean;
+      const small = await resizeImage(file, 1080, 0.8);   // rimpicciolita e alleggerita (JPEG)
+      const base = file.name.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+      const name = Date.now() + "-" + (base || "foto") + ".jpg";
       const r = await fetch(SUPABASE_URL + "/storage/v1/object/foto/" + name, {
         method: "POST",
-        headers: { apikey: SUPABASE_KEY, "Content-Type": file.type || "image/jpeg", "x-upsert": "true" },
-        body: file,
+        headers: { apikey: SUPABASE_KEY, "Content-Type": "image/jpeg", "x-upsert": "true" },
+        body: small,
       });
       if (!r.ok) throw new Error("upload " + r.status);
       return SUPABASE_URL + "/storage/v1/object/public/foto/" + name;
